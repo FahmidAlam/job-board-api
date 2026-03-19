@@ -16,4 +16,4 @@ class Job(Base):
     salary_min = Column(Float, nullable=True)
     salary_max = Column(Float, nullable=True)
     description = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow) 
