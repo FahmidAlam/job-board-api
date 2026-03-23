@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from models import engine, Base, Sessionlocal,Job
 from schemas import JobCreate,JobResponse
 from fastapi import HTTPException
+from typing import Optional
+
 app = FastAPI()
 Base.metadata.create_all(bind = engine)
 
@@ -14,15 +16,35 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/jobs")
-def get_jobs(db:Session =Depends(get_db)):
-    jobs= db.query(Job).limit(10).all()
-    return jobs
+# @app.get("/jobs")
+# def get_jobs(db:Session =Depends(get_db)):
+#     jobs= db.query(Job).limit(10).all()
+#     return jobs
+
+@app.get("/jobs",response_model=list[JobResponse])
+def get_jobs(role: Optional[str]=None,
+            location: Optional[str]=None,
+            salary_min:Optional[float]=None,
+            salary_max:Optional[float]=None,
+            limit:int =10,
+            offset:int=0,
+            db:Session=Depends(get_db)
+            ):
+    query = db.query(Job)
+    if role:
+        query = query.filter(Job.role==role)
+    if location:
+        query = query.filter(Job.location==location)
+    if  salary_min:
+        query= query.filter(Job.salary_min>=salary_min)
+    if  salary_max:
+        query= query.filter(Job.salary_max<=salary_max)
+    return query.limit(limit).offset(offset).all()
 
 # driver for postgresql - psycopg2
 @app.post("/jobs",response_model= JobResponse)
 def create_job(job:JobCreate,db:Session=Depends(get_db)):
-    db_job =Job(**job.dict())
+    db_job =Job(**job.dict())   #! used "**" to unpack the dictonary into named fields as SQLAlchemy model constructor deosn't expect /support a raw dictonary object
     db.add(db_job)
     db.commit()
     db.refresh(db_job)

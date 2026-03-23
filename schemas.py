@@ -6,7 +6,7 @@ class JobCreate(BaseModel):
     company : str
     role : str
     location: str
-    salary_min:Optional[float] =None
+    salary_min:float |None= None
     salary_max:Optional[float]= None
     
 class JobResponse(BaseModel):
