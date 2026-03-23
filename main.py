@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from models import engine, Base, Sessionlocal,Job
 from schemas import JobCreate,JobResponse
 from fastapi import HTTPException
-from typing import Optional
+from typing import Optional,Annotated
 
 app = FastAPI()
 Base.metadata.create_all(bind = engine)
@@ -15,6 +15,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+db_dependency= Annotated[Session,Depends(get_db)] 
+
 
 # @app.get("/jobs")
 # def get_jobs(db:Session =Depends(get_db)):
