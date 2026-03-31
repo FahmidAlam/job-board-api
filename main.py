@@ -60,7 +60,7 @@ def get_job(job_id:int,db:Session=Depends(get_db)):
         raise HTTPException(status_code=404,detail="job not found")
     return job
 
-@app.delete("/jobs/{job_id}")
+@app.delete("/jobs/{job_id}",status_code=204)
 def delet_job(job_id: int , db:Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id==job_id).first()
     if not job:
