@@ -29,3 +29,10 @@ class Job(Base):
         Index('idx_role','role'),
         Index('idx_location','location'),   #! trailing comma needed as SQLAlchemy requires it to be a tuple
     )
+
+class User(Base):
+    __tablename__= "Users"
+    id = Column(Integer,primary_key=True)
+    email = Column(String,unique=True,nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime,default=lambda: datetime.now(timezone.utc))

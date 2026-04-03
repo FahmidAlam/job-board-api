@@ -1,9 +1,10 @@
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
-from models import engine, Base, Sessionlocal,Job
-from schemas import JobCreate,JobResponse
+from models import engine, Base, Sessionlocal,Job,User
+from schemas import JobCreate,JobResponse, UserCreate, Token
 from fastapi import HTTPException
 from typing import Optional,Annotated
+from security import hash_password, create_access_token
 
 app = FastAPI()
 Base.metadata.create_all(bind = engine)
@@ -79,3 +80,17 @@ def update_job(job_id: int,job_update:JobCreate, db:Session=Depends(get_db)):
     db.commit()
     db.refresh(job)
     return job
+
+@app.post("/register",response_model=Token)
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email==user.email).first()
+    if existing :
+        raise HTTPException(status_code=409,detail="Email already registered")
+    hased_pw = hash_password(user.password)
+    new_user = User(email =user.email,hased_password= hased_pw)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    access_token = create_access_token(data={'sub':new_user.email})
+    return {'access_token': access_token,'token_type':"bearer"}
