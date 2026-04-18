@@ -7,12 +7,15 @@ This file handles Authentication & Security:
     * Getting current user → from token
 '''
 from fastapi import Depends, FastAPI,HTTPException,status
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
 from models import engine, Base, Sessionlocal,Job,User
 from schemas import JobCreate,JobResponse, UserCreate, Token
 from database import get_db
 from typing import Optional,Annotated
 from security import hash_password, create_access_token, verify_password,get_current_user
+
 
 app = FastAPI()
 Base.metadata.create_all(bind = engine)   #! Scans all SQLAlchemy models linked to Base and creates their corresponding tables in the database connected through engine if those tables do not already exist.
