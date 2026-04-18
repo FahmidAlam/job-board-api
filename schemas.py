@@ -1,4 +1,9 @@
-from pydantic import BaseModel
+'''
+    - Pydantic schemas define the validated input/output structure of API data
+    - schemas manage how data enters and leaves the application safely
+'''
+
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 class JobCreate(BaseModel):
@@ -16,8 +21,7 @@ class JobResponse(BaseModel):
     role:str
     location: str
     created_at:datetime
-    class Config:
-        from_attribute =True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserCreate(BaseModel):
     email: str

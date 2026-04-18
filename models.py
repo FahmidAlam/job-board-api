@@ -1,4 +1,9 @@
-from sqlalchemy import Column,Integer,String, DateTime,Float,create_engine,Index
+"""
+    - SQLAlchemy models define database tables and persistence logic
+    - Models manage how data is stored internally
+"""
+
+from sqlalchemy import Column,Integer,String, DateTime,Float,create_engine,Index,ForeignKey
 #from sqlalchemy.ext.declarative import declarative_base   #!deprecated in newer SQLAlchemy
 from sqlalchemy.orm import sessionmaker,declarative_base
 from datetime import datetime,timezone
@@ -23,7 +28,8 @@ class Job(Base):
     description = Column(String)
     #created_at = Column(DateTime, default=datetime.utcnow)   #! deprecated in newer version of python
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-
+    user_id=Column(Integer,ForeignKey("users.id"),nullable=False)
+    
     #! Here , extra table_level settings is defined in SQLAlchemy.i.e. things that are not tied in single column
     __table_args__= (
         Index('idx_role','role'),
@@ -31,7 +37,7 @@ class Job(Base):
     )
 
 class User(Base):
-    __tablename__= "Users"
+    __tablename__= "users"
     id = Column(Integer,primary_key=True)
     email = Column(String,unique=True,nullable=False)
     hashed_password = Column(String, nullable=False)
