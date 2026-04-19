@@ -6,6 +6,7 @@ This file handles Authentication & Security:
     * Validating JWT tokens → for protected routes
     * Getting current user → from token
 '''
+import logging        #! logging: recording what different program is doing (with levels) so we can debug, monitor, and track it later.
 from fastapi import Depends, FastAPI,HTTPException,status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -16,17 +17,23 @@ from database import get_db
 from typing import Optional,Annotated
 from security import hash_password, create_access_token, verify_password,get_current_user
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 Base.metadata.create_all(bind = engine)   #! Scans all SQLAlchemy models linked to Base and creates their corresponding tables in the database connected through engine if those tables do not already exist.
 
 db_dependency= Annotated[Session,Depends(get_db)] 
 
-
-# @app.get("/jobs")
-# def get_jobs(db:Session =Depends(get_db)):
-#     jobs= db.query(Job).limit(10).all()
-#     return jobs
+@app.exception_handler(RequestValidationError)    #! @app.exception_handler(X) means: "whenever error of type X bubbles up anywhere in the app, run this function instead of crashing."
+async def validation_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail":"Invalid request",
+            "errors": exc.errors()
+        }
+    )
 
 @app.get("/jobs",response_model=list[JobResponse])
 def get_jobs(role: Optional[str]=None,
@@ -54,6 +61,7 @@ def create_job(job:JobCreate,
                 current_user:User=Depends(get_current_user),
                 db:Session=Depends(get_db)
                 ):
+    logger.info(f"User {current_user.email} creating job: {job.title}")
     db_job =Job(**job.dict(),user_id =current_user.id)   #! here the API data  job(which is a schema "JobCreate") becomes DB object Job(it's a DB table)
     #! used "**" to unpack the dictonary into named fields as SQLAlchemy model constructor deosn't expect /support a raw dictonary object
     db.add(db_job)

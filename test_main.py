@@ -91,3 +91,70 @@ def test_update_job(client):
     response = client.put(f"/jobs/{job_id}",json=updated_data)
     assert response.status_code ==200
     assert response.json()['title'] == 'backend engineer'
+
+def test_register(client):
+    response = client.post("/register", json={
+        "email": "newuser@example.com",
+        "password": "secret123"
+    })
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+
+def test_login(client):
+    # Register first
+    client.post("/register", json={
+        "email": "testuser@example.com",
+        "password": "secret123"
+    })
+    
+    # Login
+    response = client.post("/login", json={
+        "email": "testuser@example.com",
+        "password": "secret123"
+    })
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+
+def test_create_job_without_auth(client):
+    job_data = {
+        "title": "Test Engineer",
+        "company": "TestCorp",
+        "role": "engineer",
+        "location": "remote"
+    }
+    response = client.post("/jobs", json=job_data)
+    assert response.status_code == 401  # Unauthorized
+
+def test_create_job_with_auth(client):
+    # Register
+    register_response = client.post("/register", json={
+        "email": "user@example.com",
+        "password": "secret123"
+    })
+    token = register_response.json()["access_token"]
+    
+    # Create job with token
+    job_data = {
+        "title": "Backend Engineer",
+        "company": "StartupXYZ",
+        "role": "engineer",
+        "location": "remote"
+    }
+    response = client.post(
+        "/jobs",
+        json=job_data,
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 200
+
+def test_invalid_password(client):
+    client.post("/register", json={
+        "email": "user@example.com",
+        "password": "secret123"
+    })
+    
+    response = client.post("/login", json={
+        "email": "user@example.com",
+        "password": "wrongpassword"
+    })
+    assert response.status_code == 401

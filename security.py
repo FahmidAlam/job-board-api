@@ -13,8 +13,8 @@ load_dotenv()
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated ="auto")
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = 'HS256'
+SECRET_KEY = os.getenv("SECRET_KEY")  #! used to sign JWT
+ALGORITHM = 'HS256'                 #! HS256 → hashing algorithm for JWT
 security = HTTPBearer()      #! HTTPBearer - extract token from Authorization header automatically ,doesn't verify the token
 
 
@@ -35,7 +35,7 @@ def create_access_token(data:dict , expires_delta: Optional[timedelta]=None):
     return encoded_jwt
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security),db:Session = Depends(get_db)):
-    token = credentials.credentials
+    token = credentials.credentials  #!From header- Authorization: Bearer <token>
     try :
         payload = jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
         email :str = payload.get("sub")

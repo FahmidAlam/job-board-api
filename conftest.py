@@ -22,7 +22,7 @@ TestingSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 @pytest.fixture(autouse=True)
 def setup_db():
     Base.metadata.create_all(bind=engine)
-    yield
+    yield                                   #! yield = “run tests now, then come back and clean everything”
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture
