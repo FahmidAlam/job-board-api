@@ -17,7 +17,7 @@ from database import get_db
 from typing import Optional,Annotated
 from security import hash_password, create_access_token, verify_password,get_current_user
 
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -115,6 +115,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 def login(credentials: UserCreate,db:Session = Depends(get_db)):
     user = db.query(User).filter(User.email==credentials.email).first()
     if not user or not verify_password(credentials.password,user.hashed_password):
+        logger.warning(f"Failed login attempt for email: {credentials.email}")
         raise HTTPException(
             status_code=401,
             detail="Invaid credential"
